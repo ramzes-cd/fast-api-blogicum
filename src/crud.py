@@ -1,28 +1,33 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
-from typing import List, Optional
-from src import models, schemas
+from src import schemas
+
+from src.models.user import User
+from src.models.category import Category
+from src.models.location import Location
+from src.models.post import Post
+from src.models.comment import Comment
 
 
 # ---------- Users ----------
 def get_user(db: Session, user_id: int):
-    return db.query(models.User).filter(models.User.id == user_id).first()
+    return db.query(User).filter(User.id == user_id).first()
 
 
 def get_user_by_email(db: Session, email: str):
-    return db.query(models.User).filter(models.User.email == email).first()
+    return db.query(User).filter(User.email == email).first()
 
 
 def get_user_by_nickname(db: Session, nickname: str):
-    return db.query(models.User).filter(models.User.nickname == nickname).first()
+    return db.query(User).filter(User.nickname == nickname).first()
 
 
 def get_users(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.User).offset(skip).limit(limit).all()
+    return db.query(User).offset(skip).limit(limit).all()
 
 
 def create_user(db: Session, user: schemas.users.UserCreate):
-    db_user = models.User(
+    db_user = User(
         nickname=user.nickname,
         first_name=user.first_name,
         last_name=user.last_name,
@@ -49,19 +54,19 @@ def update_user(db: Session, user_id: int, user_update: schemas.users.UserUpdate
 
 # ---------- Categories ----------
 def get_category(db: Session, category_id: int):
-    return db.query(models.Category).filter(models.Category.id == category_id).first()
+    return db.query(Category).filter(Category.id == category_id).first()
 
 
 def get_category_by_slug(db: Session, slug: str):
-    return db.query(models.Category).filter(models.Category.slug == slug).first()
+    return db.query(Category).filter(Category.slug == slug).first()
 
 
 def get_categories(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Category).offset(skip).limit(limit).all()
+    return db.query(Category).offset(skip).limit(limit).all()
 
 
 def create_category(db: Session, category: schemas.categories.CategoryCreate):
-    db_category = models.Category(**category.dict())
+    db_category = Category(**category.dict())
     db.add(db_category)
     db.commit()
     db.refresh(db_category)
@@ -89,15 +94,15 @@ def delete_category(db: Session, category_id: int):
 
 # ---------- Locations ----------
 def get_location(db: Session, location_id: int):
-    return db.query(models.Location).filter(models.Location.id == location_id).first()
+    return db.query(Location).filter(Location.id == location_id).first()
 
 
 def get_locations(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Location).offset(skip).limit(limit).all()
+    return db.query(Location).offset(skip).limit(limit).all()
 
 
 def create_location(db: Session, location: schemas.locations.LocationCreate):
-    db_location = models.Location(**location.dict())
+    db_location = Location(**location.dict())
     db.add(db_location)
     db.commit()
     db.refresh(db_location)
@@ -125,20 +130,20 @@ def delete_location(db: Session, location_id: int):
 
 # ---------- Posts ----------
 def get_post(db: Session, post_id: int):
-    return db.query(models.Post).filter(models.Post.id == post_id).first()
+    return db.query(Post).filter(Post.id == post_id).first()
 
 
 def get_posts(db: Session, skip: int = 0, limit: int = 100, published_only: bool = True):
-    query = db.query(models.Post)
+    query = db.query(Post)
     if published_only:
-        query = query.filter(models.Post.is_published == True)
-    return query.order_by(desc(models.Post.pub_date)).offset(skip).limit(limit).all()
+        query = query.filter(Post.is_published == True)
+    return query.order_by(desc(Post.pub_date)).offset(skip).limit(limit).all()
 
 
 def create_post(db: Session, post: schemas.posts.PostCreate, author_id: int):
     post_data = post.dict()
     post_data['author_id'] = author_id
-    db_post = models.Post(**post_data)
+    db_post = Post(**post_data)
     db.add(db_post)
     db.commit()
     db.refresh(db_post)
@@ -166,19 +171,19 @@ def delete_post(db: Session, post_id: int):
 
 # ---------- Comments ----------
 def get_comment(db: Session, comment_id: int):
-    return db.query(models.Comment).filter(models.Comment.id == comment_id).first()
+    return db.query(Comment).filter(Comment.id == comment_id).first()
 
 
 def get_comments_by_post(db: Session, post_id: int, skip: int = 0, limit: int = 100):
-    return db.query(models.Comment).filter(
-        models.Comment.post_id == post_id
-    ).order_by(models.Comment.created_at).offset(skip).limit(limit).all()
+    return db.query(Comment).filter(
+        Comment.post_id == post_id
+    ).order_by(Comment.created_at).offset(skip).limit(limit).all()
 
 
 def create_comment(db: Session, comment: schemas.comments.CommentCreate, author_id: int):
     comment_data = comment.dict()
     comment_data['author_id'] = author_id
-    db_comment = models.Comment(**comment_data)
+    db_comment = Comment(**comment_data)
     db.add(db_comment)
     db.commit()
     db.refresh(db_comment)
